@@ -10,5 +10,4 @@ RUN npm install
 
 COPY ../frontend/ .
 
-EXPOSE 8080
 CMD [ "http-server", "dist" ]

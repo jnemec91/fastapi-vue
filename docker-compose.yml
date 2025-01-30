@@ -1,9 +1,19 @@
 services:
+  frontend:
+    build: 
+      dockerfile: dockerfiles/frontend.dockerfile
+    ports:
+      - 8080:8080
+    expose:
+      - "8080"
+    volumes:
+      - ./frontend/:/app      
+    restart: always
   api:
     build:
       dockerfile: dockerfiles/api.dockerfile
-    ports:
-      - 8000:8000
+    expose:
+      - "8000"
     command: uvicorn main:app --host 0.0.0.0 --reload
     volumes:
       - ./:/app
@@ -12,6 +22,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis
+    restart: always
 
   worker:
     container_name: api-celery-worker
@@ -26,6 +37,7 @@ services:
     depends_on:
       - api
       - redis
+    restart: always
 
   redis:
     image: redis
