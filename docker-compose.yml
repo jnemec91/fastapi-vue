@@ -3,20 +3,24 @@ services:
     build: 
       dockerfile: dockerfiles/frontend.dockerfile
     ports:
-      - 8080:8080
+      - 80:80
     expose:
       - "8080"
-    volumes:
-      - ./frontend/:/app      
+      - "80"
+    # volumes:
+    #   - ./frontend/:/app      
     restart: always
   api:
     build:
       dockerfile: dockerfiles/api.dockerfile
     expose:
       - "8000"
-    command: uvicorn main:app --host 0.0.0.0 --reload
+    ports:
+      - 8000:8000
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     volumes:
-      - ./:/app
+      # - ./ :/app
+      - database_volume:/app
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -30,7 +34,7 @@ services:
       dockerfile: dockerfiles/api.dockerfile
     command: ./celery/celery-entrypoint.sh
     volumes:
-      - ./:/app
+      - database_volume:/app
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -41,3 +45,6 @@ services:
 
   redis:
     image: redis
+
+volumes:
+  database_volume:
