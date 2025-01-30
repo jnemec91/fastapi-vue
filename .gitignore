@@ -1,2 +1,3 @@
 venv/
 beers.db
+__pycache__/

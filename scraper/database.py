@@ -1,19 +1,26 @@
 import sqlite3
-from beer import Beer, beer_from_list
+from .beer import Beer, beer_from_list
 
 class Database:
     def __init__(self, db: str) -> None:
         self.name = db
-        self.conn = sqlite3.connect(db)
-        self.cur = self.conn.cursor()
-        self.cur.execute("CREATE TABLE IF NOT EXISTS beer (id INTEGER PRIMARY KEY, name TEXT, style TEXT, abv TEXT, epm TEXT, ibu TEXT, brewery TEXT, location TEXT, description TEXT, url TEXT, image_url TEXT, rating TEXT)")
-        self.conn.commit()
+        self.conn = None
+        print(f"Database '{db}' connected")
     
     def __str__(self) -> str:
         return self.name
     
     def __del__(self) -> None:
         self.conn.close()
+
+    def connect(self) -> None:
+        self.conn = sqlite3.connect(self.name)
+        self.cur = self.conn.cursor()
+
+    def create(self, db: str) -> None:
+        self.connect()
+        self.cur.execute("CREATE TABLE IF NOT EXISTS beer (id INTEGER PRIMARY KEY, name TEXT, style TEXT, abv TEXT, epm TEXT, ibu TEXT, brewery TEXT, location TEXT, description TEXT, url TEXT, image_url TEXT, rating TEXT)")
+        self.conn.commit()        
 
     def fetch(self) -> list:
         self.cur.execute("SELECT * FROM beer")

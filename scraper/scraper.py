@@ -1,18 +1,20 @@
 import bs4
 import requests
 import re
-
-from beer import Beer
-from database import Database
-
-# create database connection
-database = Database("../../beers.db")
-print(f"Database connection established to: {database}")
+from .beer import Beer
+from .database import Database
 
 def construct_url(protocol: str, server: str, url: str) -> str:
     return protocol+"://"+server+url
 
-def get_beer_list_atlas(protocol: str, server: str, url: str) -> list:
+def get_beer_list_atlas(protocol: str, server: str, url: str, db: str) -> list:
+
+    # create database connection
+    database = Database(db)
+    database.create(db)
+    database.connect()
+
+    print(f"Database connection established to: {database}")    
     print(f"Fetching beers from: {construct_url(protocol, server, url)}")
 
     response = requests.get(construct_url(protocol, server, url))
@@ -97,8 +99,3 @@ def get_beer_list_atlas(protocol: str, server: str, url: str) -> list:
             database.update(db_beer[0].id, beer)
 
     return database.fetch()
-
-if __name__ == "__main__":    
-    get_beer_list_atlas("http","www.atlaspiv.cz/","?page=hodnoceni")
-
-
