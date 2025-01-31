@@ -23,8 +23,8 @@ services:
     env_file:
       - path: ./.env
     depends_on:
-      - redis
-      - pgdatabase
+      pgdatabase:
+        condition: service_healthy
     restart: always
 
   worker:
@@ -51,6 +51,11 @@ services:
     volumes:
       - database_volume:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5    
 
 volumes:
   database_volume:
