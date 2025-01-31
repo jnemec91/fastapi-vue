@@ -31,7 +31,7 @@ services:
     container_name: api-celery-worker
     build:
       dockerfile: dockerfiles/api.dockerfile
-    command: ./celery/celery-entrypoint.sh
+    command: ./api_worker/celery-entrypoint.sh
     env_file:
       - path: ./.env
     depends_on:

@@ -3,14 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from scraper.database import Database
 from celery.result import AsyncResult
-
 import logging
-
 from api_worker.tasks import scrape_web_for_the_beers
 
+running_tasks = []
 
 app = FastAPI()
-
 app.add_middleware(
     CORSMiddleware,
     # allow_origins=["http://http://127.0.0.1:80", "http://localhost:80"],
@@ -28,21 +26,31 @@ logging.basicConfig(level=logging.INFO)
 logging.info("Starting BeerAPI")
 
 @app.get("/beers")
-def get_all_beers():
+async def get_all_beers():
     db.connect()
     data = db.fetch()
     return data
 
+@app.get("/tasks")
+async def get_tasks():
+    return {"tasks": running_tasks}
+
 @app.get("/beers/scrape")
 async def scrape_beers():
+    if running_tasks:
+        logging.info("Scraping already in progress")
+        return {"task_id": running_tasks[0]}
+    
     logging.info("Scraping beers")
     task = scrape_web_for_the_beers.delay("scrape")
+    running_tasks.append(task.id)
     return {"task_id": task.id}
 
 @app.get("/beers/scrape/{task_id}")
 async def get_scrape_status(task_id: str):
     task = AsyncResult(task_id)
     if task.ready():
+        running_tasks.remove(task_id)
         return {
             "status": task.status,
             "result": task.get() if task.successful() else str(task.result)

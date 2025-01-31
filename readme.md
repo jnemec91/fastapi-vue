@@ -51,10 +51,9 @@ PostgreSQL: localhost:5432
 
 ### Project Structure
 ```
-├── api_worker/         # Celery tasks
+├── api_worker/         # Celery tasks and configuration
 ├── frontend/          # Vue.js frontend application
 ├── scraper/           # Web scraping modules
-├── celery/            # Celery donfiguration
 ├── nginx/             # Nginx configuration
 ├── dockerfiles/       # Docker build files
 ├── docker-compose.yml
