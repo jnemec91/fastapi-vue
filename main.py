@@ -31,10 +31,6 @@ async def get_all_beers():
     data = db.fetch()
     return data
 
-@app.get("/tasks")
-async def get_tasks():
-    return {"tasks": running_tasks}
-
 @app.get("/beers/scrape")
 async def scrape_beers():
     if running_tasks:
@@ -46,7 +42,11 @@ async def scrape_beers():
     running_tasks.append(task.id)
     return {"task_id": task.id}
 
-@app.get("/beers/scrape/{task_id}")
+@app.get("/tasks/running")
+async def get_tasks():
+    return {"tasks": running_tasks}
+
+@app.get("/beers/tasks/{task_id}")
 async def get_scrape_status(task_id: str):
     task = AsyncResult(task_id)
     if task.ready():
