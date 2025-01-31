@@ -19,6 +19,19 @@ export default {
   setup() {
     const error = ref('')
     const updatingDatabase = ref(false)
+
+    // Poll for task completion
+    const checkStatus = async (task_id) => {
+      const statusResponse = await fetch(`http://127.0.0.1:8000/beers/scrape/${task_id}`)
+      const statusData = await statusResponse.json()
+      if (statusData.status === 'SUCCESS') {
+        updatingDatabase.value = false
+      } else if (statusData.status === 'FAILURE') {
+        throw Error('Task failed')
+      } else {
+        setTimeout(checkStatus, 1000) // Check again in 1 second
+      }
+    }    
     
     const startUpdate = async () => {
       updatingDatabase.value = true
@@ -29,20 +42,7 @@ export default {
         }
         const data = await response.json()
         
-        // Poll for task completion
-        const checkStatus = async () => {
-          const statusResponse = await fetch(`http://127.0.0.1:8000/beers/scrape/${data.task_id}`)
-          const statusData = await statusResponse.json()
-          if (statusData.status === 'SUCCESS') {
-            updatingDatabase.value = false
-          } else if (statusData.status === 'FAILURE') {
-            throw Error('Task failed')
-          } else {
-            setTimeout(checkStatus, 1000) // Check again in 1 second
-          }
-        }
-        
-        checkStatus()
+        checkStatus(data.task_id)
       }
       catch (err) {
         error.value = err.message
@@ -53,11 +53,18 @@ export default {
     return {
       startUpdate, error, updatingDatabase
     }
+  },
+  mounted() {
+    fetch('http://127.0.0.1:8000/tasks')
+    .then(response => response.json())
+    .then(data => {
+      if (data.tasks.length > 0) {
+        this.updatingDatabase = true
+        this.checkStatus(data.tasks[0].id)
+      }
+    })
   }
 }
-
-
-
 </script>
 
 <style>
