@@ -11,11 +11,6 @@ import BeerTable from "@/components/BeerTable.vue";
 
 export default {
   name: 'HomeView',
-  data () {
-    return {
-
-    }
-  },
   components: {
     BeerTable
   }

@@ -103,7 +103,7 @@ export default {
 
     const filteredData = computed(() => {
     return beers.value.filter((beer) => {
-        console.log(searchFilter.value)
+        
         const propertyValue = beer[searchFilter.value]?.toString().toLowerCase() ?? ''
         const searchValue = searchBeer.value.toLowerCase()
         
