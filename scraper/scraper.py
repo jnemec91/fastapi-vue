@@ -1,3 +1,4 @@
+import os
 import bs4
 import requests
 import re
@@ -7,11 +8,11 @@ from .database import Database
 def construct_url(protocol: str, server: str, url: str) -> str:
     return protocol+"://"+server+url
 
-def get_beer_list_atlas(protocol: str, server: str, url: str, db: str) -> list:
+def get_beer_list_atlas(protocol: str, server: str, url: str) -> list:
 
     # create database connection
-    database = Database(db)
-    database.create(db)
+    database = Database(os.getenv('POSTGRES_DB'), os.getenv('POSTGRES_USER'), os.getenv('POSTGRES_PASSWORD'), os.getenv('DB_HOST'), os.getenv('DB_PORT'))
+    database.create()
     database.connect()
 
     print(f"Database connection established to: {database}")    

@@ -45,3 +45,4 @@ watchfiles==1.0.4
 websockets==14.2
 celery
 redis
+psycopg2

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from scraper.database import Database
@@ -19,7 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-db = Database("beers.db")
+db = Database(os.getenv('POSTGRES_DB'), os.getenv('POSTGRES_USER'), os.getenv('POSTGRES_PASSWORD'), os.getenv('DB_HOST'), os.getenv('DB_PORT'))
+db.create()
 db.connect()
 
 logging.basicConfig(level=logging.INFO)
@@ -34,7 +36,7 @@ def get_all_beers():
 @app.get("/beers/scrape")
 async def scrape_beers():
     logging.info("Scraping beers")
-    task = scrape_web_for_the_beers.delay("scrape", db.name)
+    task = scrape_web_for_the_beers.delay("scrape")
     return {"task_id": task.id}
 
 @app.get("/beers/scrape/{task_id}")
