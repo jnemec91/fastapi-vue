@@ -3,9 +3,13 @@
     <router-link :to="{name: 'home'}">Domů</router-link> | 
     <router-link :to="{name: 'about'}">O Aplikaci</router-link>
     <button v-if="!updatingDatabase" class=" top-right scraper-button" @click="startUpdate">Aktualizovat data</button>
-    <div v-else class="top-right loading">
-
+    <div v-else class="top-right scraper-div">
+      <p>Stahuji data...</p>
+      <div class="loading small"></div>
+      <p>Uloženo: {{ currentProgress }}</p>
+      <p>Nalezeno piv: {{ totalProgress }}</p>
     </div>
+
   </nav>
   <div class="page">
     <router-view/>
@@ -13,28 +17,41 @@
 </template>
 
 <script>
-import { ref } from "vue";
-
+ // using options API
 export default {
-  setup() {
-    const error = ref('')
-    const updatingDatabase = ref(false)
-
-    // Poll for task completion
-    const checkStatus = async (task_id) => {
-      const statusResponse = await fetch(`http://127.0.0.1:8000/beers/scrape/${task_id}`)
+  data() {
+    return {
+      error: '',
+      updatingDatabase: false,
+      currentProgress: 0,
+      totalProgress: 0
+    }
+  },
+  methods: {
+    async checkStatus(task_id) {
+      const statusResponse = await fetch(`http://127.0.0.1:8000/beers/tasks/${task_id}`)
       const statusData = await statusResponse.json()
       if (statusData.status === 'SUCCESS') {
-        updatingDatabase.value = false
+        this.currentProgress = 0
+        this.totalProgress = 0        
+        this.updatingDatabase = false
+        
       } else if (statusData.status === 'FAILURE') {
-        throw Error('Task failed')
+        this.currentProgress = 0
+        this.totalProgress = 0
+        this.updatingDatabase = false
+        alert('Error updating database!')
+
+      } else if (statusData.status === 'PROGRESS') {
+        this.currentProgress = statusData.progress.current
+        this.totalProgress = statusData.progress.total
+        setTimeout(() => this.checkStatus(task_id), 1000)
       } else {
-        setTimeout(checkStatus, 1000) // Check again in 1 second
+        setTimeout(() => this.checkStatus(task_id), 1000)
       }
-    }    
-    
-    const startUpdate = async () => {
-      updatingDatabase.value = true
+    },
+    async startUpdate() {
+      this.updatingDatabase = true
       try {
         let response = await fetch('http://127.0.0.1:8000/beers/scrape')
         if (!response.ok) {
@@ -42,25 +59,22 @@ export default {
         }
         const data = await response.json()
         
-        checkStatus(data.task_id)
+        this.checkStatus(data.task_id)
       }
       catch (err) {
-        error.value = err.message
-        alert(error.value)
-        updatingDatabase.value = false
+        this.error = err.message
+        alert(this.error)
+        this.updatingDatabase = false
       }
-    }
-    return {
-      startUpdate, error, updatingDatabase
     }
   },
   mounted() {
-    fetch('http://127.0.0.1:8000/tasks')
+    fetch('http://127.0.0.1:8000/tasks/running')
     .then(response => response.json())
     .then(data => {
       if (data.tasks.length > 0) {
         this.updatingDatabase = true
-        this.checkStatus(data.tasks[0].id)
+        this.checkStatus(data.tasks[0])
       }
     })
   }
@@ -101,13 +115,24 @@ nav a.router-link-exact-active {
   right: 20px;  
 }
 
+.scraper-div{
+  border: 4px solid crimson;
+  border-radius: 12px;
+  background: white;
+  padding: 5px;
+  font-weight: bold;
+}
+.scraper-div > .loading{
+  margin: 0 auto;
+}
+
 .scraper-button{
-  border: none;
+  border: 2px solid transparent;
   border-radius: 4px;
   background: crimson;
   color: whitesmoke;
   padding: 10px;
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
   font-weight: bold;
 }
@@ -140,6 +165,11 @@ nav{
   width: 25px;
   height: 25px;
   animation: spin 2s linear infinite;
+}
+
+.small{
+  width: 10px;
+  height: 10px;
 }
 
 @keyframes spin {
