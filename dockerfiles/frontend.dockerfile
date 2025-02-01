@@ -10,7 +10,7 @@ COPY ../frontend/ .
 
 RUN npm run build
 
-
+# CMD [ "npm", "run", "serve" ]
 
 FROM nginx:alpine as production-build
 COPY ../nginx/nginx.conf /etc/nginx/nginx.conf
