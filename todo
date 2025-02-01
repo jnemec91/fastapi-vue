@@ -1,3 +1,4 @@
-fix db issues in container (readonly)
 add pagination to frontend
-create readme.md
+do comments, cleanup, docstrings
+edit readme
+write tests
