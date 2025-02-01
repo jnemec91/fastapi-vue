@@ -55,4 +55,9 @@ async def get_scrape_status(task_id: str):
             "status": task.status,
             "result": task.get() if task.successful() else str(task.result)
         }
+    elif task.state == 'PROGRESS':
+        return {
+            "status": task.state,
+            "progress": task.info
+        }        
     return {"status": task.status}
