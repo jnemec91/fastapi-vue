@@ -25,9 +25,11 @@ class Database:
             user=self.user,
             password=self.password,
             host=self.host,
-            port=self.port
+            port=self.port,
+            options='-c client_encoding=UTF8'
         )
         self.cur = self.conn.cursor()
+        self.cur.execute("SET client_encoding TO 'UTF8';")
 
     def create(self) -> None:
         self.connect()
