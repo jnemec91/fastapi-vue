@@ -1,6 +1,10 @@
+import os
+import time
+import logging
 import psycopg2
 from psycopg2 import sql
-from .beer import Beer, beer_from_list
+from .models import Beer
+from .utils import beer_from_list
 
 class Database:
     def __init__(self, db: str, user: str, password: str, host: str, port: str) -> None:
@@ -10,7 +14,6 @@ class Database:
         self.host = host
         self.port = port
         self.conn = None
-        print(f"Database '{db}' connected")
 
     def __str__(self) -> str:
         return self.db
@@ -51,7 +54,7 @@ class Database:
         """)
         self.conn.commit()
 
-    def fetch(self) -> list:
+    def fetch(self) -> list[Beer]:
         self.cur.execute("SELECT * FROM beer")
         rows = self.cur.fetchall()
         
@@ -61,7 +64,7 @@ class Database:
 
         return rows
 
-    def find_fuzzy(self, beer: Beer) -> list:
+    def find_fuzzy(self, beer: Beer) -> list[Beer]:
         self.cur.execute("SELECT * FROM beer WHERE name LIKE %s", (f'%{beer.name}%',))
         rows = self.cur.fetchall()
 
@@ -71,7 +74,7 @@ class Database:
         
         return rows
 
-    def find_exact(self, beer: Beer) -> list:
+    def find_exact(self, beer: Beer) -> list[Beer]:
         self.cur.execute("SELECT * FROM beer WHERE name = %s", (beer.name,))
         rows = self.cur.fetchall()
 
@@ -110,3 +113,34 @@ class Database:
         ))
         self.conn.commit()
         return True
+
+
+def connect_and_create(create:bool=False) -> Database:
+    """
+    Connect to the database and create the table if it doesn't exist.
+    When the connection fails, it retries with exponential backoff.
+    Table is only created if the create flag is set to True.
+
+    Args:
+    create (bool): Flag to create the table if it doesn't exist
+
+    Returns:
+    Database: Database object
+    """
+    # Retry connection with exponential backoff
+    delay = 2
+    while delay < int(os.getenv('DB_TIMEOUT_MAX_BACKOFF', 64)):
+        logging.info("Connecting to the database...")
+        try:
+            db = Database(os.getenv('POSTGRES_DB', os.getenv('POSTGRES_USER')), os.getenv('POSTGRES_USER', 'postgres'), os.getenv('POSTGRES_PASSWORD'), os.getenv('DB_HOST', 'pgdatabase'), os.getenv('DB_PORT', '5432'))
+            if create:
+                db.create() # create the database if it doesn't exist
+            db.connect()
+            break
+        except Exception as e:
+            logging.error(f"Database connection failed: {e}, retrying in {delay} seconds")
+            time.sleep(delay)
+            delay = delay ** 2
+            continue
+    logging.info("Database connection established")
+    return db
