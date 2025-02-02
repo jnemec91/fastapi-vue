@@ -65,7 +65,7 @@
         </tr>
       </thead>
       <tbody v-if="beers.length > 0">
-        <tr v-for="beer in filteredData" :key="beer.id" @click="selectedBeer = beer">
+        <tr v-for="beer in pagedFilteredData" :key="beer.id" @click="selectedBeer = beer">
           <td>{{ beer.name }}</td>
           <td>{{ beer.style }}</td>
           <td>{{ beer.abv }}</td>
@@ -74,6 +74,45 @@
           <td>{{ beer.rating }}</td>
         </tr>
       </tbody>
+      <tfoot v-if="beers.length > 0">
+        <tr class="table-header">
+          <td colspan="1">
+            <button @click="currentPage = Math.max(currentPage - 1, 0)" :disabled="currentPage <= 0">Předchozí</button>
+          </td>
+          <td colspan="4">
+            <div class="table-bottom-row horizontal">
+              <button
+                :class="{ selected: offset === 0 }"
+                class="page-button"
+                v-for="offset in buttonOffsets"
+                :key="offset"
+                @click="changePage(offset)"
+                :disabled="currentPage + offset < 0 || currentPage + offset >= totalPages.value"
+              >
+                {{ currentPage + offset + 1 }}
+              </button>
+            </div>
+          </td>
+          <td colspan="1">
+            <button @click="currentPage++" :disabled="currentPage >= totalPages.value - 1">Další</button>
+          </td>
+        </tr>
+        <tr class="table-header">
+          <td colspan="6">
+            <div class="table-bottom-row vertical">
+              <label>Počet řádek na stranu:</label>
+              <input
+                type="number"
+                v-model="recordsPerPage"
+                min="1"
+                @change="currentPage = 0"
+                @blur="validateRecordsPerPageInput"
+                class="records-per-page"
+              />
+            </div>
+          </td>
+        </tr>
+      </tfoot>
       <div v-else class="center">
         <div class="loading orange"></div>
         <h2 class="loading-text">Loading...</h2>
@@ -100,25 +139,33 @@ export default {
     const selectedBeer = ref(null)
     const searchBeer = ref('')
     const searchFilter = ref('name')
+    const currentPage = ref(0)
+    const totalPages = ref(0)
+    const recordsPerPage = ref(20)
+
     const { beers, error, load } = getBeerData()
 
     const sortKey = ref('name')
     const sortDirection = ref('asc')
     
     load('http://127.0.0.1:8000/beers')
+    
 
     const filteredData = computed(() => {
     return beers.value.filter((beer) => {
         
         const propertyValue = beer[searchFilter.value]?.toString().toLowerCase() ?? ''
         const searchValue = searchBeer.value.toLowerCase()
+        currentPage.value = 0
         
         if (typeof propertyValue === 'number') {
             return propertyValue.toString().includes(searchValue)
         }
         return propertyValue.includes(searchValue)
+        })
     })
-})
+
+    totalPages.value = computed(() => Math.ceil(filteredData.value.length / recordsPerPage.value))
 
     const sortData = (key) => {
         sortKey.value = key
@@ -130,9 +177,29 @@ export default {
             beers.value.sort((a, b) => a[sortKey.value] < b[sortKey.value] ? 1 : -1)
         }
     }
-    console.log(selectedBeer.value)
+
+    const pagedFilteredData = computed(() => {
+        const start = currentPage.value * recordsPerPage.value
+        const end = start + recordsPerPage.value
+        return filteredData.value.slice(start, end)
+    })
+
+    const validateRecordsPerPageInput = () => {
+      if (recordsPerPage.value < 1) {
+        recordsPerPage.value = 1;
+      }
+    }
+
+    const buttonOffsets = computed(() => {
+      return [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+    })
+
+    const changePage = (offset) => {
+      currentPage.value += offset;
+    }
+
     return {
-        beers, error, searchBeer, filteredData, sortData, sortDirection, sortKey, searchFilter, selectedBeer
+        beers, error, searchBeer, filteredData, sortData, sortDirection, sortKey, searchFilter, selectedBeer, pagedFilteredData, currentPage, totalPages, recordsPerPage, validateRecordsPerPageInput, buttonOffsets, changePage
     }
   },
 }
@@ -148,7 +215,7 @@ export default {
     border: none;
     margin: 0;
     }
-    th > button{
+    th > button, td > button, .page-button{
     border: 2px solid transparent;
     border-radius: 4px;
     background: #f28e1c;
@@ -158,18 +225,34 @@ export default {
     cursor: pointer;
     font-weight: bold;
     }
-    th > button:hover{
+    th > button:hover, td > button:hover, .page-button:hover{
         background: white;
         border: 2px solid #f28e1c;
         color: #f28e1c;
     }
-    th > button.selected{
+    td > button:disabled{
+        background: #aaa;
+        border: 2px solid #666;
+        color: #white;
+        cursor: not-allowed;
+    }
+    .page-button:disabled{
+        display: none;
+    }
+    td > button:disabled:hover{
+        background: #aaa;
+        border: 2px solid #666;
+        color: white;
+        cursor: not-allowed;
+    }
+    th > button.selected, .page-button.selected{
         background: white;
         border: 2px solid #f28e1c;
         color: #f28e1c;
     }
     tr{
         position: relative;
+        height: 4vh;
     }
     tr:hover{
         background: #ddd;
@@ -194,11 +277,22 @@ export default {
     td{
         padding: 10px 0;
     }
+    .table-bottom-row{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .horizontal{
+        flex-direction: row;
+    }
+    .vertical{
+        flex-direction: column;
+    }
     .search-label{
         font-weight: bolder;
         font-size: larger;
     }
-    input[type='text']{
+    input[type='text'], input[type='number']{
         width: 33vw;
         height: 30px;
         border-radius: 10px;
@@ -226,5 +320,9 @@ export default {
         top: 50%;
         left: 50%;
         text-align: center;
+    }
+    .records-per-page{
+      /* important is needed sadly */
+        width: 4vw!important; 
     }
 </style>
