@@ -20,7 +20,7 @@ services:
       - "8000"
     ports:
       - 8000:8000
-    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     # volumes:
       # - ./ :/app
     env_file:
@@ -34,7 +34,7 @@ services:
     container_name: api-celery-worker
     build:
       dockerfile: dockerfiles/api.dockerfile
-    command: ./api_worker/celery-entrypoint.sh
+    command: ./worker/celery-entrypoint.sh
     env_file:
       - path: ./.env
     depends_on:
