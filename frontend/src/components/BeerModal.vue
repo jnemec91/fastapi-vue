@@ -26,7 +26,8 @@
                 </div>
             </div>
             <div class="review-div">
-                <p>{{ beer.description }}</p>
+                <p v-if="beer.description">{{ beer.description }}</p>
+                <p v-else>Bez popisu výrobce.</p>
             </div>
         </div>
         <div class="source-div">
