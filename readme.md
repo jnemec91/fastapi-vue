@@ -12,7 +12,7 @@ A modern web application using FastAPI backend with Vue.js frontend, Celery for 
 The application consists of several containerized services:
 
 - **API**: FastAPI backend server
-- **Frontend**: Vue.js web application
+- **Frontend**: Vue.js web application and NGINX web server
 - **Worker**: Celery worker for background task processing
 - **Redis**: Message broker for Celery
 - **PostgreSQL**: Main database
