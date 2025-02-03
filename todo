@@ -1,4 +1,3 @@
 write tests!
 update table live
 show loading only until response come from server. If response is empty show "no data in database"
-fix favicon not being visible
