@@ -28,6 +28,7 @@ The application consists of several containerized services:
 
 2. Create a `.env` file in the root directory with the following variables:
 ```
+VUE_APP_API_BASE_URL= fastapi_url       # Must be set - sets urls in frontend to point to fastapi
 CELERY_BROKER_URL= redis_url            # Defaults to "redis://redis:6379" when not set
 CELERY_RESULT_BACKEND= redis_url        # Defaults to ""redis://redis:6379" when not set
 POSTGRES_DB= database_name              # Defaults to value of POSTGRES_USER when not set (see postgres docker image)
@@ -45,8 +46,10 @@ docker-compose up
 
 Service Endpoints
 ```
-Frontend: http://localhost:80 (only this will be accessible from outside)
-API: http://api:8000          
+Frontend: http://frontend:80 (only this will be accessible from outside)
+          http://frontend:8000
+
+API: http://api:8000         (this will be accessible as well)
 PostgreSQL: pgdatabase:5432
 ```
 
