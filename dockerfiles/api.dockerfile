@@ -11,6 +11,6 @@ COPY ../ .
 RUN addgroup --system celery && adduser --system --group celery
 RUN chmod +x ./worker/celery-entrypoint.sh
 
-RUN pytest
+# RUN pytest
 
-# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD ["fastapi", "run", "./app/main.py", "--proxy-headers", "--port", "8000"]

@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     async checkStatus(task_id) {
-      const statusResponse = await fetch(`http://127.0.0.1:8000/beers/tasks/${task_id}`)
+      const statusResponse = await fetch(`${process.env.VUE_APP_API_BASE_URL}/beers/tasks/${task_id}`)
       const statusData = await statusResponse.json()
       if (statusData.status === 'SUCCESS') {
         this.currentProgress = 0
@@ -53,7 +53,7 @@ export default {
     async startUpdate() {
       this.updatingDatabase = true
       try {
-        let response = await fetch('http://127.0.0.1:8000/beers/scrape')
+        let response = await fetch(`${process.env.VUE_APP_API_BASE_URL}/beers/scrape`)
         if (!response.ok) {
           throw Error('Unable to update database now!')
         }
@@ -69,7 +69,7 @@ export default {
     }
   },
   mounted() {
-    fetch('http://127.0.0.1:8000/tasks/running')
+    fetch(`${process.env.VUE_APP_API_BASE_URL}/tasks/running`)
     .then(response => response.json())
     .then(data => {
       if (data.tasks.length > 0) {

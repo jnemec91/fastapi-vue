@@ -148,8 +148,7 @@ export default {
     const sortKey = ref('name')
     const sortDirection = ref('asc')
     
-    load('http://127.0.0.1:8000/beers')
-    
+    load(`${process.env.VUE_APP_API_BASE_URL}/beers`)
 
     const filteredData = computed(() => {
     return beers.value.filter((beer) => {
@@ -199,7 +198,10 @@ export default {
     }
 
     return {
-        beers, error, searchBeer, filteredData, sortData, sortDirection, sortKey, searchFilter, selectedBeer, pagedFilteredData, currentPage, totalPages, recordsPerPage, validateRecordsPerPageInput, buttonOffsets, changePage
+        beers, error, searchBeer, filteredData, sortData,
+        sortDirection, sortKey, searchFilter, selectedBeer, 
+        pagedFilteredData, currentPage, totalPages, recordsPerPage,
+        validateRecordsPerPageInput, buttonOffsets, changePage
     }
   },
 }
